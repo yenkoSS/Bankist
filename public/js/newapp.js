@@ -35,10 +35,12 @@ function renderLoginForm() {
                                 <div class="form-group">
                                     <label for="">Enter your email address</label>
                                     <input type="email" class="form-control emailLogIn">
+                                    <div class="errorMsg"></div>
                                 </div>
                                 <div class="form-group">
                                     <label for="">Enter your password</label>
                                     <input type="text" class="form-control passwordlogIn">
+                                    <div class="errorMsg">Error</div>
                                 </div>
                                 <button class="btn btn-primary mb-4 logInBtn">Log in</button>
                                 <a class="d-block" href="#" onclick="switchToRegister()">Don't have an account? Sign up!</a>
@@ -74,8 +76,16 @@ function renderLoginForm() {
   signUpBtn.addEventListener('click', () => {
     fetchSignUp();
   });
+
   logInBtn.addEventListener('click', () => {
-    fetchLogIn();
+    const emailElement = document.querySelector('.emailLogIn');
+    const passwordElement = document.querySelector('.passwordlogIn');
+    const isFormValid =
+      emailLogInValidator(emailElement) &&
+      passwordLogInValidator(passwordElement);
+    if (isFormValid) {
+      fetchLogIn(emailElement.value, passwordElement.value);
+    }
   });
 }
 
@@ -255,14 +265,17 @@ async function fetchSignUp() {
 
 // FETCH FUNCTIONS
 
-async function fetchLogIn() {
+async function fetchLogIn(emailValue, passwordValue) {
   try {
+    /*
     const emailField = document.querySelector('.emailLogIn').value;
     const passwordField = document.querySelector('.passwordlogIn').value;
 
-    if (!emailField || !passwordField) {
+    /if (!emailValue || !passwordValue) {
       return alert('You must provide an email address and a password.');
     }
+
+    */
 
     const request = await fetch(`http://127.0.0.1:8000/api/v1/user/login`, {
       method: 'POST',
@@ -272,8 +285,8 @@ async function fetchLogIn() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        email: emailField,
-        password: passwordField,
+        email: emailValue,
+        password: passwordValue,
       }),
     });
 
@@ -381,4 +394,56 @@ async function requestAmount(requestedAmount) {
     }
   );
   const response = await request.json();
+}
+
+// V A L I D A T O R S
+const isBlank = (value) => (value.length > 0 ? false : true);
+const isEmail = (value) =>
+  value.match('/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,6}$/')
+    ? true
+    : false;
+
+const isComplex = (value) =>
+  value.match('/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/;')
+    ? true
+    : false;
+
+const isBetween = (value) => (value.length >= 8 ? true : false);
+
+function emailLogInValidator(emailEl, passwordEl) {
+  const emailValue = emailEl.value;
+
+  if (isBlank(emailValue)) {
+    showError(emailEl, 'You must provide an email address.');
+  }
+
+  if (!isEmail(emailValue)) {
+    showError(emailEl, 'You must provide a valid email address.');
+  }
+
+  return true;
+}
+
+function passwordLogInValidator(passwordEl) {
+  const passwordValue = passwordEl.value;
+
+  if (isBlank(passwordValue)) {
+    showError(passwordEl, 'You must provide a password.');
+  }
+
+  return true;
+}
+
+function showError(element, message) {
+  element.style.borderColor = 'red';
+  const parentElement = element.parentElement;
+  const errorElement = parentElement.children[2];
+  errorElement.style.display = 'block';
+  errorElement.innerText = message;
+}
+
+function removeError(element) {
+  element.style.borderColor = '#ced4da';
+  const parentElement = (element.parentElement.children[2].style.display =
+    'hidden');
 }
