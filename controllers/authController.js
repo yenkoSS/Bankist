@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
 const CustomError = require('./../utils/errorHandler');
 
-exports.signUp = async (req, res, next) => {
+exports.signup = async (req, res, next) => {
   try {
     const newUser = await User.create(req.body);
     res
@@ -61,10 +61,12 @@ exports.login = async (req, res, next) => {
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_PASSWORD);
-    res.cookie('authCookie', token, { maxAge: 1000 * 60 * 2 });
+    console.log(user._id);
+    res.cookie('token', token, { maxAge: 1000 * 60 * 2, httpOnly: true });
+    res.cookie('userId', user._id.valueOf(), { maxAge: 1000 * 60 * 2 });
     res
       .status(200)
-      .json({ status: 'success', message: 'You are logged in.', user });
+      .json({ status: 'success', message: 'You are authenticated.' });
   } catch (err) {
     next(err);
   }
@@ -72,12 +74,15 @@ exports.login = async (req, res, next) => {
 
 exports.protect = (req, res, next) => {
   try {
-    const cookie = req.cookies.authCookie;
+    const cookie = req.cookies;
+    console.log(cookie);
     if (!cookie) {
-      throw new CustomError(401, 'fail', 'You are not authenticated.');
+      /*throw new CustomError(401, 'fail', 'You are not authenticated.'); */
+      res.redirect('/form');
     }
+
     const token = jwt.verify(cookie, process.env.JWT_PASSWORD);
-    req.id = token.id;
+    console.log(`This is the cookie and token: ${cookie}, ${token}`);
     next();
   } catch (err) {
     if (err.message.startsWith('Invalid signature')) {

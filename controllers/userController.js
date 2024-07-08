@@ -6,6 +6,47 @@ exports.htmlLoader = (req, res) => {
   res.sendFile(path.join(__dirname, './../public', 'app.html'));
 };
 
+exports.getAllUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({});
+    res.status(200).json({ status: 'success', data: users });
+  } catch (err) {
+    const customError = new CustomError(500, 'fail', err.message);
+    next(customError);
+  }
+};
+
+exports.postUser = async (req, res) => {
+  try {
+    console.log('not implemented yet.');
+    const newUserData = req.body;
+    const newUser = await User.save(newUserData);
+    res.status(200).json({ status: 'success', data: newUser });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.getUserById = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const user = await User.findOne({ _id: id });
+    res
+      .status(200)
+      .json({ status: 'success', data: user, userId: user._id.valueOf() });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.updateUserById = (req, res) => {
+  console.log('Not implemented yet.');
+};
+
+exports.deleteUserById = (req, res) => {
+  console.log('Not implemented yet.');
+};
+
 exports.myAccount = async (req, res, next) => {
   try {
     console.log(req.id);

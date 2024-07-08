@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const userRouter = require('./routers/userRouter');
+const appRouter = require('./routers/appRouter');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 //config process environment
@@ -17,9 +18,7 @@ database = process.env.DATABASE;
 mongoose
   .connect(database)
   .then(() => console.log('Connected to DB'))
-  .catch((err) =>
-    console.log(`Something went wrong during database connection: ${err}`)
-  );
+  .catch((err) => console.log(`Error: ${err}`));
 
 // M I D D L E W A R E S
 
@@ -32,9 +31,13 @@ app.use(express.static(__dirname + '/public'));
 // loggin middleware
 app.use(morgan('tiny'));
 // routers
+app.use('/', appRouter);
 app.use('/api/v1/user', userRouter);
+
 app.use((err, req, res, next) => {
-  res.status(err.statusCode).json({ status: err.status, message: err.message });
+  res
+    .status(err.statusCode || 500)
+    .json({ code: err.statusCode, status: err.status, message: err.message });
 });
 
 const port = process.env.PORT || 9000;
