@@ -7,15 +7,17 @@ const userSchema = mongoose.Schema({
     unique: [true, 'Email already used.'],
   },
   password: { type: String, required: [true, 'You must provide a password.'] },
-  joindate: { type: String, default: new Date() },
+  accountType: { type: String, default: 'Starter' },
+  joindate: { type: String, default: new Date().toLocaleDateString() },
   movements: {
     type: Array,
     default: [
       {
         date: new Date(),
         amount: 500,
-        transaction: 'Bankist Starter Pack Gift',
+        transactionName: 'Bankist Starter Pack Gift',
       },
+      { date: new Date(), amount: 500, transactionName: 'Credit' },
     ],
   },
 });
