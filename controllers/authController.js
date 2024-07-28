@@ -61,7 +61,6 @@ exports.login = async (req, res, next) => {
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_PASSWORD);
-    console.log(user._id);
     res.cookie('token', token, { maxAge: 1000 * 60 * 2, httpOnly: true });
     res.cookie('userId', user._id.valueOf(), { maxAge: 1000 * 60 * 2 });
     res
@@ -74,7 +73,7 @@ exports.login = async (req, res, next) => {
 
 exports.protect = (req, res, next) => {
   try {
-    const cookie = req.cookies;
+    const cookie = req.cookies.token;
     console.log(cookie);
     if (!cookie) {
       /*throw new CustomError(401, 'fail', 'You are not authenticated.'); */
@@ -82,7 +81,6 @@ exports.protect = (req, res, next) => {
     }
 
     const token = jwt.verify(cookie, process.env.JWT_PASSWORD);
-    console.log(`This is the cookie and token: ${cookie}, ${token}`);
     next();
   } catch (err) {
     if (err.message.startsWith('Invalid signature')) {
