@@ -1,0 +1,11 @@
+.income {
+  width: 30px;
+  height: 30px;
+  background-color: greenyellow;
+}
+
+.outcome {
+  width: 30px;
+  height: 30px;
+  background-color: red;
+}
