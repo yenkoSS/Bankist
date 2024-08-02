@@ -1,23 +1,29 @@
-// L O G I N  /  R E G I S T E R  S W I T C H   F U N C T I O N S
+// switch to Register form function
 
 function switchToRegister() {
   document.getElementById('login-col').style.display = 'none';
   document.getElementById('register-col').style.display = 'block';
 }
 
+// switch to LogIn form function
+
 function switchToLogin() {
   document.getElementById('register-col').style.display = 'none';
   document.getElementById('login-col').style.display = 'block';
 }
 
-// V A L I D A T O R S
+// isBlank validator
 
 const isBlank = (value) => (value.length > 0 ? false : true);
+
+// isEmail validator
 const isEmail = function (value) {
   const regex =
     /[a-z0-9\._%+!$&*=^|~#%'`?{}/\-]+@([a-z0-9\-]+\.){1,}([a-z]{2,16})/;
   return regex.test(value);
 };
+
+// isComplex validator
 
 const isComplex = function (value) {
   const regex =
@@ -25,10 +31,11 @@ const isComplex = function (value) {
   return regex.test(value);
 };
 
-const isBetween = (value) => (value.length >= 8 ? true : false);
-
+// isConfirmedPassword validator
 const isConfirmedPassword = (passwordValue, confirmedPasswordVAlue) =>
   passwordValue === confirmedPasswordVAlue ? true : false;
+
+// Email Validator
 
 function emailValidator(emailEl) {
   const emailValue = emailEl.value;
@@ -38,28 +45,38 @@ function emailValidator(emailEl) {
     return;
   }
 
-  console.log(isBlank(emailValue));
-
   if (!isEmail(emailValue)) {
     showError(emailEl, 'You must provide a valid email address.');
     return;
   }
 
-  console.log(isEmail(emailValue));
-
   removeError(emailEl);
   return true;
 }
 
-function passwordValidator(passwordEl) {
+// LogIn Password Validator
+
+function passwordLogInValidator(passwordEl) {
   const passwordValue = passwordEl.value;
-  console.log(isBlank(passwordValue));
+
+  if (isBlank(passwordValue)) {
+    showError(passwordEl, 'You must enter your password.');
+    return;
+  }
+
+  removeError(passwordEl);
+  return true;
+}
+
+// Register Password Validator
+
+function passwordRegisterValidator(passwordEl) {
+  const passwordValue = passwordEl.value;
+
   if (isBlank(passwordValue)) {
     showError(passwordEl, 'You must provide a password.');
     return;
   }
-
-  console.log(passwordValue);
 
   if (!isComplex(passwordValue)) {
     showError(
@@ -79,6 +96,8 @@ function passwordValidator(passwordEl) {
   return true;
 }
 
+// Register Confirm Password Validator
+
 function confirmPasswordValidator(passwordEl, confirmedPasswordEl) {
   const passwordValue = passwordEl.value;
   const confirmedPasswordValue = confirmedPasswordEl.value;
@@ -97,6 +116,8 @@ function confirmPasswordValidator(passwordEl, confirmedPasswordEl) {
   return true;
 }
 
+// Show error function
+
 function showError(element, message) {
   element.style.borderColor = 'red';
   const parentElement = element.parentElement;
@@ -105,6 +126,8 @@ function showError(element, message) {
   errorElement.innerText = message;
 }
 
+// Remove error function
+
 function removeError(element) {
   element.style.borderColor = '#ced4da';
   const parentElement = element.parentElement;
@@ -112,8 +135,8 @@ function removeError(element) {
   errorElement.innerText = ' ';
 }
 
-// F E T C H   S I G N / L O G   I N
-
+// Fetch functions //
+// Sign In
 async function fetchSignIn(emailValue, passwordValue) {
   try {
     const request = fetch(`http://127.0.0.1:8000/api/v1/user/signup`, {
@@ -133,6 +156,7 @@ async function fetchSignIn(emailValue, passwordValue) {
   }
 }
 
+// Log In
 async function fetchLogIn(emailValue, passwordValue) {
   try {
     const request = await fetch(`http://127.0.0.1:8000/api/v1/user/login`, {
@@ -158,7 +182,8 @@ async function fetchLogIn(emailValue, passwordValue) {
   }
 }
 
-// B T N   E V E N T S
+// Buttons events //
+// Log In event
 
 const logInBtn = document.querySelector('.logInBtn');
 
@@ -167,11 +192,13 @@ logInBtn.addEventListener('click', function (event) {
   const emailElement = document.querySelector('.emailLogIn');
   const passwordElement = document.querySelector('.passwordlogIn');
   const isFormValid =
-    emailValidator(emailElement) && passwordValidator(passwordElement);
+    emailValidator(emailElement) && passwordLogInValidator(passwordElement);
   if (isFormValid) {
     fetchLogIn(emailElement.value, passwordElement.value);
   }
 });
+
+// Register event
 
 const signUpBtn = document.querySelector('.btnSignUp');
 
@@ -185,7 +212,7 @@ signUpBtn.addEventListener('click', function (event) {
 
   const isFormValid =
     emailValidator(emailElement) &&
-    passwordValidator(passwordElement) &&
+    passwordRegisterValidator(passwordElement) &&
     confirmPasswordValidator(passwordElement, confirmedPasswordElement);
   if (isFormValid) {
     fetchSignIn(emailElement.value, passwordElement.value);
