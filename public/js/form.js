@@ -1,4 +1,4 @@
-// L O G I N  /  R E G I S T E R  S W I T C H E R
+// L O G I N  /  R E G I S T E R  S W I T C H   F U N C T I O N S
 
 function switchToRegister() {
   document.getElementById('login-col').style.display = 'none';
@@ -13,39 +13,87 @@ function switchToLogin() {
 // V A L I D A T O R S
 
 const isBlank = (value) => (value.length > 0 ? false : true);
-const isEmail = (value) =>
-  value.match('/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,6}$/')
-    ? true
-    : false;
+const isEmail = function (value) {
+  const regex =
+    /[a-z0-9\._%+!$&*=^|~#%'`?{}/\-]+@([a-z0-9\-]+\.){1,}([a-z]{2,16})/;
+  return regex.test(value);
+};
 
-const isComplex = (value) =>
-  value.match('/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/;')
-    ? true
-    : false;
+const isComplex = function (value) {
+  const regex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&])[A-Za-z\d@.#$!%*?&]{8,15}$/;
+  return regex.test(value);
+};
 
 const isBetween = (value) => (value.length >= 8 ? true : false);
 
-function emailLogInValidator(emailEl, passwordEl) {
+const isConfirmedPassword = (passwordValue, confirmedPasswordVAlue) =>
+  passwordValue === confirmedPasswordVAlue ? true : false;
+
+function emailValidator(emailEl) {
   const emailValue = emailEl.value;
 
   if (isBlank(emailValue)) {
     showError(emailEl, 'You must provide an email address.');
+    return;
   }
+
+  console.log(isBlank(emailValue));
 
   if (!isEmail(emailValue)) {
     showError(emailEl, 'You must provide a valid email address.');
+    return;
   }
 
+  console.log(isEmail(emailValue));
+
+  removeError(emailEl);
   return true;
 }
 
-function passwordLogInValidator(passwordEl) {
+function passwordValidator(passwordEl) {
   const passwordValue = passwordEl.value;
-
+  console.log(isBlank(passwordValue));
   if (isBlank(passwordValue)) {
     showError(passwordEl, 'You must provide a password.');
+    return;
   }
 
+  console.log(passwordValue);
+
+  if (!isComplex(passwordValue)) {
+    showError(
+      passwordEl,
+      `Make sure your password contains:
+      At least one lowercase alphabet
+      At least one uppercase alphabet
+      At least one numeric digit
+      At least one special character
+      Also, the total length must be in the range [8-15]`
+    );
+
+    return;
+  }
+
+  removeError(passwordEl);
+  return true;
+}
+
+function confirmPasswordValidator(passwordEl, confirmedPasswordEl) {
+  const passwordValue = passwordEl.value;
+  const confirmedPasswordValue = confirmedPasswordEl.value;
+
+  if (isBlank(confirmedPasswordValue)) {
+    showError(confirmedPasswordEl, 'You must confirm your password!');
+    return;
+  }
+
+  if (!isConfirmedPassword(passwordValue, confirmedPasswordValue)) {
+    showError(confirmedPasswordEl, 'Password not matching!');
+    return;
+  }
+
+  removeError(confirmedPasswordEl);
   return true;
 }
 
@@ -53,15 +101,18 @@ function showError(element, message) {
   element.style.borderColor = 'red';
   const parentElement = element.parentElement;
   const errorElement = parentElement.children[2];
-  errorElement.style.display = 'block';
+
   errorElement.innerText = message;
 }
 
 function removeError(element) {
   element.style.borderColor = '#ced4da';
-  const parentElement = (element.parentElement.children[2].style.display =
-    'hidden');
+  const parentElement = element.parentElement;
+  const errorElement = parentElement.children[2];
+  errorElement.innerText = ' ';
 }
+
+// F E T C H   S I G N / L O G   I N
 
 async function fetchSignIn(emailValue, passwordValue) {
   try {
@@ -75,7 +126,7 @@ async function fetchSignIn(emailValue, passwordValue) {
       body: JSON.stringify({ email: emailValue, password: passwordValue }),
     });
 
-    const response = await response.json();
+    const response = await request.json();
     console.log(response);
   } catch (err) {
     console.log(err);
@@ -84,16 +135,6 @@ async function fetchSignIn(emailValue, passwordValue) {
 
 async function fetchLogIn(emailValue, passwordValue) {
   try {
-    /*
-    const emailField = document.querySelector('.emailLogIn').value;
-    const passwordField = document.querySelector('.passwordlogIn').value;
-
-    /if (!emailValue || !passwordValue) {
-      return alert('You must provide an email address and a password.');
-    }
-
-    */
-
     const request = await fetch(`http://127.0.0.1:8000/api/v1/user/login`, {
       method: 'POST',
       mode: 'cors',
@@ -117,12 +158,16 @@ async function fetchLogIn(emailValue, passwordValue) {
   }
 }
 
+// B T N   E V E N T S
+
 const logInBtn = document.querySelector('.logInBtn');
 
-logInBtn.addEventListener('click', () => {
+logInBtn.addEventListener('click', function (event) {
+  event.preventDefault();
   const emailElement = document.querySelector('.emailLogIn');
   const passwordElement = document.querySelector('.passwordlogIn');
-  const isFormValid = true && passwordLogInValidator(passwordElement);
+  const isFormValid =
+    emailValidator(emailElement) && passwordValidator(passwordElement);
   if (isFormValid) {
     fetchLogIn(emailElement.value, passwordElement.value);
   }
@@ -130,181 +175,20 @@ logInBtn.addEventListener('click', () => {
 
 const signUpBtn = document.querySelector('.btnSignUp');
 
-signUpBtn.addEventListener('click', () => {
+signUpBtn.addEventListener('click', function (event) {
+  event.preventDefault();
   const emailElement = document.querySelector('.emailSignUp');
   const passwordElement = document.querySelector('.passwordSignUp');
-  const isFormValid = true && passwordLogInValidator(passwordElement);
+  const confirmedPasswordElement = document.querySelector(
+    '.confirmPasswordSignUp'
+  );
+
+  const isFormValid =
+    emailValidator(emailElement) &&
+    passwordValidator(passwordElement) &&
+    confirmPasswordValidator(passwordElement, confirmedPasswordElement);
   if (isFormValid) {
     fetchSignIn(emailElement.value, passwordElement.value);
     alert('User created!');
   }
 });
-
-/*
-
-const emailEl = document.querySelector("#email");
-const passwordEl = document.querySelector("#password");
-const confirmPasswordEl = document.querySelector("#confirm-password");
-
-const form = document.querySelector("#signup");
-
-const checkEmail = () => {
-  let valid = false;
-  const email = emailEl.value.trim();
-  if (!isRequired(email)) {
-    showError(emailEl, "Email cannot be blank.");
-  } else if (!isEmailValid(email)) {
-    showError(emailEl, "Email is not valid.");
-  } else {
-    showSuccess(emailEl);
-    valid = true;
-  }
-  return valid;
-};
-
-const checkPassword = () => {
-  let valid = false;
-
-  const password = passwordEl.value.trim();
-
-  if (!isRequired(password)) {
-    showError(passwordEl, "Password cannot be blank.");
-  } else if (!isPasswordSecure(password)) {
-    showError(
-      passwordEl,
-      "Password must has at least 8 characters that include at least 1 lowercase character, 1 uppercase characters, 1 number, and 1 special character in (!@#$%^&*)"
-    );
-  } else {
-    showSuccess(passwordEl);
-    valid = true;
-  }
-
-  return valid;
-};
-
-const checkConfirmPassword = () => {
-  let valid = false;
-  // check confirm password
-  const confirmPassword = confirmPasswordEl.value.trim();
-  const password = passwordEl.value.trim();
-
-  if (!isRequired(confirmPassword)) {
-    showError(confirmPasswordEl, "Please enter the password again");
-  } else if (password !== confirmPassword) {
-    showError(confirmPasswordEl, "The password does not match");
-  } else {
-    showSuccess(confirmPasswordEl);
-    valid = true;
-  }
-
-  return valid;
-};
-
-const isEmailValid = (email) => {
-  const re =
-    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(email);
-};
-
-const isPasswordSecure = (password) => {
-  const re = new RegExp(
-    "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})"
-  );
-  return re.test(password);
-};
-
-const isRequired = (value) => (value === "" ? false : true);
-const isBetween = (length, min, max) =>
-  length < min || length > max ? false : true;
-
-const showError = (input, message) => {
-  // get the form-field element
-  const formField = input.parentElement;
-  // add the error class
-  formField.classList.remove("success");
-  formField.classList.add("error");
-
-  // show the error message
-  const error = formField.querySelector("small");
-  error.textContent = message;
-};
-
-const showSuccess = (input) => {
-  // get the form-field element
-  const formField = input.parentElement;
-
-  // remove the error class
-  formField.classList.remove("error");
-  formField.classList.add("success");
-
-  // hide the error message
-  const error = formField.querySelector("small");
-  error.textContent = "";
-};
-
-form.addEventListener("submit", function (e) {
-  // prevent the form from submitting
-  e.preventDefault();
-
-  // validate fields
-  let isEmailValid = checkEmail(),
-    isPasswordValid = checkPassword(),
-    isConfirmPasswordValid = checkConfirmPassword();
-
-  let isFormValid = isEmailValid && isPasswordValid && isConfirmPasswordValid;
-
-  // submit to the server if the form is valid
-  if (isFormValid) {
-  }
-});
-
-const debounce = (fn, delay = 500) => {
-  let timeoutId;
-  return (...args) => {
-    // cancel the previous timer
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-    // setup a new timer
-    timeoutId = setTimeout(() => {
-      fn.apply(null, args);
-    }, delay);
-  };
-};
-
-form.addEventListener(
-  "input",
-  debounce(function (e) {
-    switch (e.target.id) {
-      case "email":
-        checkEmail();
-        break;
-      case "password":
-        checkPassword();
-        break;
-      case "confirm-password":
-        checkConfirmPassword();
-        break;
-    }
-  })
-);
-
-const btnSubmitEl = document.querySelector(".btn-submit");
-
-btnSubmitEl.addEventListener("click", () => {
-  const emailValue = document.querySelector(".emailInput").value;
-  const passwordValue = document.querySelector(".passwordInput").value;
-  console.log(emailValue, passwordValue);
-  async function postSign() {
-    const req = fetch(
-      "127.0.0.1:8000/signUp",
-      { method: "POST" },
-      { body: { emailValue, passwordValue } }
-    );
-  }
-
-  postSign();
-});
-*/
-
-// V A L I D A T O R S
