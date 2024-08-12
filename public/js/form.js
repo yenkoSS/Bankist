@@ -12,6 +12,17 @@ function switchToLogin() {
   document.getElementById('login-col').style.display = 'block';
 }
 
+// elements queries
+
+const emailLogInElement = document.querySelector('.emailLogIn');
+const passwordLogInElement = document.querySelector('.passwordlogIn');
+
+const emailSignUpElement = document.querySelector('.emailSignUp');
+const passworSignUpElement = document.querySelector('.passwordSignUp');
+const confirmedPasswordElement = document.querySelector(
+  '.confirmPasswordSignUp'
+);
+
 // isBlank validator
 
 const isBlank = (value) => (value.length > 0 ? false : true);
@@ -135,11 +146,27 @@ function removeError(element) {
   errorElement.innerText = ' ';
 }
 
+// Show server message function
+
+function showServerError(errMsg) {
+  const serverMsgEl = document.querySelector('.serverMsg');
+  serverMsgEl.innerText = errMsg;
+  serverMsgEl.style.display = 'block';
+}
+
+// Remove server message function
+
+function removeServerError() {
+  const serverMsg = document.querySelector('.serverMsg');
+  serverMsg.innerText = '';
+  serverMsg.style.display = 'none';
+}
+
 // Fetch functions //
 // Sign In
 async function fetchSignIn(emailValue, passwordValue) {
   try {
-    const request = fetch(`http://127.0.0.1:8000/api/v1/user/signup`, {
+    const request = await fetch(`http://127.0.0.1:8000/api/v1/user/signup`, {
       method: 'POST',
       mode: 'cors',
       headers: {
@@ -150,9 +177,25 @@ async function fetchSignIn(emailValue, passwordValue) {
     });
 
     const response = await request.json();
-    console.log(response);
+    if (response.code === 409) {
+      showError(emailSignUpElement, response.message);
+    }
+
+    if (
+      response.code === 401 &&
+      response.message.startsWith('You must provide an email address')
+    ) {
+      showError(emailSignUpElement, response.message);
+    }
+
+    if (
+      response.code === 401 &&
+      response.message.startsWith('You must provide a password.')
+    ) {
+      showError(passworSignUpElement, response.message);
+    }
   } catch (err) {
-    console.log(err);
+    showServerError(err.message);
   }
 }
 
@@ -173,12 +216,34 @@ async function fetchLogIn(emailValue, passwordValue) {
     });
 
     const response = await request.json();
-    console.log(response);
-    if ((response.status = 200)) {
+
+    if (response.code === 200) {
       window.location.replace('http://127.0.0.1:8000/dashboard');
     }
+
+    if (
+      response.code === 401 &&
+      response.message === 'You must enter your email address'
+    ) {
+      showError(emailLogInElement, response.message);
+    }
+
+    if (response.code === 404) {
+      showError(emailLogInElement, response.message);
+    }
+
+    if (
+      response.code === 401 &&
+      response.message === 'You must enter your password.'
+    ) {
+      showError(passwordLogInElement, response.message);
+    }
+
+    if (response.code === 401 && response.message === 'Invalid password.') {
+      showError(passwordLogInElement, response.message);
+    }
   } catch (err) {
-    alert(err);
+    showServerError(err.message);
   }
 }
 
@@ -189,12 +254,12 @@ const logInBtn = document.querySelector('.logInBtn');
 
 logInBtn.addEventListener('click', function (event) {
   event.preventDefault();
-  const emailElement = document.querySelector('.emailLogIn');
-  const passwordElement = document.querySelector('.passwordlogIn');
-  const isFormValid =
-    emailValidator(emailElement) && passwordLogInValidator(passwordElement);
-  if (isFormValid) {
-    fetchLogIn(emailElement.value, passwordElement.value);
+
+  /*const isFormValid =
+    emailValidator(emailLogInElement) &&
+    passwordLogInValidator(passwordLogInElement); */
+  if (true) {
+    fetchLogIn(emailLogInElement.value, passwordLogInElement.value);
   }
 });
 
@@ -204,18 +269,12 @@ const signUpBtn = document.querySelector('.btnSignUp');
 
 signUpBtn.addEventListener('click', function (event) {
   event.preventDefault();
-  const emailElement = document.querySelector('.emailSignUp');
-  const passwordElement = document.querySelector('.passwordSignUp');
-  const confirmedPasswordElement = document.querySelector(
-    '.confirmPasswordSignUp'
-  );
 
-  const isFormValid =
-    emailValidator(emailElement) &&
-    passwordRegisterValidator(passwordElement) &&
-    confirmPasswordValidator(passwordElement, confirmedPasswordElement);
-  if (isFormValid) {
-    fetchSignIn(emailElement.value, passwordElement.value);
-    alert('User created!');
+  /*const isFormValid =
+    emailValidator(emailSignUpElement) &&
+    passwordRegisterValidator(passworSignUpElement) && 
+  confirmPasswordValidator(passworSignUpElement, confirmedPasswordElement); */
+  if (true) {
+    fetchSignIn(emailSignUpElement.value, passworSignUpElement.value);
   }
 });
