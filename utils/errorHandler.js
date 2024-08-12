@@ -1,6 +1,6 @@
 class CustomError {
-  constructor(statusCode = 400, status, message) {
-    this.statusCode = statusCode;
+  constructor(statusCode, status, message) {
+    this.code = statusCode;
     this.status = status;
     this.message = message;
   }
