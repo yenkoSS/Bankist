@@ -29,3 +29,9 @@
     transform: rotate(360deg);
   }
 }
+
+.serverMsg {
+  display: none;
+  color: orangered;
+  font-size: 1rem;
+}
