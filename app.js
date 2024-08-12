@@ -36,8 +36,8 @@ app.use('/api/v1/user', userRouter);
 
 app.use((err, req, res, next) => {
   res
-    .status(err.statusCode || 500)
-    .json({ code: err.statusCode, status: err.status, message: err.message });
+    .status(err.code || 500)
+    .json({ code: err.code || 500, status: err.status, message: err.message });
 });
 
 const port = process.env.PORT || 9000;
